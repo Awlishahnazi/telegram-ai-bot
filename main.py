@@ -2,6 +2,10 @@ import asyncio
 
 from app.bot import create_bot, dp
 from app.handlers.start import router
+from app.utils.logger import setup_logger
+
+
+logger = setup_logger()
 
 
 async def main():
@@ -9,7 +13,7 @@ async def main():
 
     dp.include_router(router)
 
-    print("✅ Bot is running...")
+    logger.info("Bot is running...")
 
     await dp.start_polling(bot)
 
