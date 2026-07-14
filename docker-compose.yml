@@ -1,0 +1,9 @@
+services:
+  telegram-bot:
+    build: .
+    container_name: telegram-ai-bot
+
+    env_file:
+      - .env
+
+    restart: unless-stopped
