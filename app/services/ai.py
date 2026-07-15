@@ -1,20 +1,27 @@
 import logging
-
+from app.prompts.system_prompt import SYSTEM_PROMPT
 from openai import AsyncOpenAI
 
-from app.config import OPENROUTER_API_KEY
+from app.config import (
+    OPENROUTER_API_KEY,
+    OPENROUTER_BASE_URL,
+    MODEL_NAME,
+    TEMPERATURE,
+    MAX_TOKENS,
+)
 
 
 logger = logging.getLogger("telegram-ai-bot")
 
 
-client = AsyncOpenAI(
-    api_key=OPENROUTER_API_KEY,
-    base_url="https://openrouter.ai/api/v1"
-)
-
 
 class AIService:
+
+    def __init__(self):
+        self.client = AsyncOpenAI(
+            api_key=OPENROUTER_API_KEY,
+            base_url=OPENROUTER_BASE_URL,
+        )
 
     async def generate_response(self, message: str) -> str:
         """
@@ -27,19 +34,25 @@ class AIService:
         )
 
         try:
-            response = await client.chat.completions.create(
-                model="openai/gpt-4o-mini",
+            response = await self.client.chat.completions.create(
+                model=MODEL_NAME,
+                temperature=TEMPERATURE,
+                max_tokens=MAX_TOKENS,
                 messages=[
                     {
+                        "role": "system",
+                        "content": SYSTEM_PROMPT,
+                    },
+                    {
                         "role": "user",
-                        "content": message
-                    }
-                ]
+                        "content": message,
+                    },
+                ],
             )
 
             return response.choices[0].message.content
 
-        except Exception as e:
+        except Exception:
             logger.exception(
                 "AI generation failed"
             )
