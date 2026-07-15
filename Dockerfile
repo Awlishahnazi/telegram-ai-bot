@@ -8,8 +8,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN useradd -m botuser
-
-USER botuser
-
 CMD ["python", "main.py"]
