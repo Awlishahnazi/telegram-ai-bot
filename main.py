@@ -1,17 +1,22 @@
 import asyncio
+import logging
+
 from app.bot import create_bot, dp
 from app.handlers.start import router
-from app.handlers.errors import router as error_router
-from app.utils.logger import setup_logger
 
 
-logger = setup_logger()
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s"
+)
+
+logger = logging.getLogger("telegram-ai-bot")
+
 
 async def main():
     bot = await create_bot()
 
     dp.include_router(router)
-    dp.include_router(error_router)
 
     logger.info("Bot is running...")
 
@@ -19,8 +24,8 @@ async def main():
         await dp.start_polling(bot)
 
     finally:
-        logger.info("Bot stopped")
         await bot.session.close()
+        logger.info("Bot stopped gracefully.")
 
 
 if __name__ == "__main__":
