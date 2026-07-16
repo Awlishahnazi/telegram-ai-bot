@@ -1,5 +1,6 @@
 import logging
 from app.prompts.system_prompt import SYSTEM_PROMPT
+from app.services.memory import memory_service
 from openai import AsyncOpenAI
 
 from app.config import (
@@ -23,7 +24,7 @@ class AIService:
             base_url=OPENROUTER_BASE_URL,
         )
 
-    async def generate_response(self, message: str) -> str:
+    async def generate_response(self, user_id: int, message: str ) -> str:
         """
         Generate AI response using OpenRouter.
         """
@@ -34,6 +35,9 @@ class AIService:
         )
 
         try:
+            memory_service.add_user_message(user_id, message)
+            history = memory_service.get_history(user_id)
+
             response = await self.client.chat.completions.create(
                 model=MODEL_NAME,
                 temperature=TEMPERATURE,
@@ -43,14 +47,14 @@ class AIService:
                         "role": "system",
                         "content": SYSTEM_PROMPT,
                     },
-                    {
-                        "role": "user",
-                        "content": message,
-                    },
+
+                    *history,
                 ],
             )
 
-            return response.choices[0].message.content
+            reply = response.choices[0].message.content
+            memory_service.add_assistant_message(user_id, reply)
+            return reply
 
         except Exception:
             logger.exception(

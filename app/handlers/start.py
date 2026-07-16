@@ -26,7 +26,8 @@ async def chat_handler(message: Message):
         return
 
     response = await ai_service.generate_response(
-        message.text
+    user_id=message.from_user.id,
+    message=message.text,
     )
 
     await message.answer(response)
