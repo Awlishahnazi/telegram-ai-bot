@@ -32,3 +32,31 @@ class Message(Base):
         DateTime,
         default=datetime.utcnow,
     )
+
+
+class UserFact(Base):
+    __tablename__ = "user_facts"
+
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        index=True,
+    )
+
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        index=True,
+    )
+
+    key: Mapped[str] = mapped_column(
+        String,
+    )
+
+    value: Mapped[str] = mapped_column(
+        Text,
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        default=datetime.utcnow,
+    )
