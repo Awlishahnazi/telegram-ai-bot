@@ -19,6 +19,7 @@ async def start_command(message: Message):
 
 @router.message()
 async def chat_handler(message: Message):
+
     if not message.text:
         await message.answer(
             "فعلاً فقط پیام متنی را پردازش می‌کنم 🤖"
@@ -26,8 +27,8 @@ async def chat_handler(message: Message):
         return
 
     response = await ai_service.generate_response(
-    user_id=message.from_user.id,
-    message=message.text,
+        user_id=message.from_user.id,
+        message=message.text
     )
 
     await message.answer(response)

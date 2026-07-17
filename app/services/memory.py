@@ -1,39 +1,95 @@
-from collections import defaultdict
+from app.database.database import SessionLocal
+from app.database.models import Message
+
 
 MAX_HISTORY = 10
 
 
 class MemoryService:
-    def __init__(self):
-        self.memory = defaultdict(list)
 
-    def get_history(self, user_id: int):
-        return self.memory[user_id]
-
-    def add_user_message(self, user_id: int, content: str):
-        self.memory[user_id].append(
-            {
-                "role": "user",
-                "content": content,
-            }
+    def add_user_message(
+        self,
+        user_id: int,
+        content: str
+    ):
+        self._save(
+            user_id,
+            "user",
+            content
         )
-        self._trim(user_id)
 
-    def add_assistant_message(self, user_id: int, content: str):
-        self.memory[user_id].append(
-            {
-                "role": "assistant",
-                "content": content,
-            }
+
+    def add_assistant_message(
+        self,
+        user_id: int,
+        content: str
+    ):
+        self._save(
+            user_id,
+            "assistant",
+            content
         )
-        self._trim(user_id)
 
-    def clear(self, user_id: int):
-        self.memory[user_id].clear()
 
-    def _trim(self, user_id: int):
-        if len(self.memory[user_id]) > MAX_HISTORY:
-            self.memory[user_id] = self.memory[user_id][-MAX_HISTORY:]
+    def get_history(
+        self,
+        user_id: int
+    ):
+        with SessionLocal() as session:
+
+            messages = (
+                session.query(Message)
+                .filter(
+                    Message.user_id == user_id
+                )
+                .order_by(
+                    Message.created_at.asc()
+                )
+                .all()
+            )
+
+            messages = messages[-MAX_HISTORY:]
+
+            return [
+                {
+                    "role": message.role,
+                    "content": message.content,
+                }
+                for message in messages
+            ]
+
+
+    def clear(
+        self,
+        user_id: int
+    ):
+        with SessionLocal() as session:
+
+            session.query(Message).filter(
+                Message.user_id == user_id
+            ).delete()
+
+            session.commit()
+
+
+    def _save(
+        self,
+        user_id: int,
+        role: str,
+        content: str
+    ):
+
+        with SessionLocal() as session:
+
+            message = Message(
+                user_id=user_id,
+                role=role,
+                content=content,
+            )
+
+            session.add(message)
+            session.commit()
+
 
 
 memory_service = MemoryService()
