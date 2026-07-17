@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Integer, String, DateTime
+from sqlalchemy import Integer, String, DateTime, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database.database import Base
@@ -25,7 +25,7 @@ class Message(Base):
     )
 
     content: Mapped[str] = mapped_column(
-        String,
+        Text,
     )
 
     created_at: Mapped[datetime] = mapped_column(
