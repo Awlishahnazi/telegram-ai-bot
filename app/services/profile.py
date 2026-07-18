@@ -3,51 +3,38 @@ from app.repositories.user_fact_repository import user_fact_repository
 
 class ProfileService:
 
-    def build_profile(
+    def get_profile(
         self,
         user_id: int,
-    ) -> str:
+    ):
 
         facts = user_fact_repository.get_facts(user_id)
 
         if not facts:
-            return (
-                "🧠 هنوز اطلاعاتی درباره شما ذخیره نشده است."
-            )
+            return None
 
-        lines = [
-            "🧠 Your Memory",
-            "",
-        ]
+        text = "👤 Your Profile\n\n"
 
-        labels = {
+        mapping = {
             "name": "👤 Name",
-            "nickname": "😊 Nickname",
-            "age": "🎂 Age",
-            "city": "🏙 City",
-            "country": "🌍 Country",
             "major": "🎓 Major",
             "university": "🏫 University",
-            "occupation": "💼 Occupation",
-            "company": "🏢 Company",
             "favorite_language": "💻 Favorite Language",
-            "favorite_framework": "⚙️ Favorite Framework",
-            "interest": "❤️ Interest",
-            "hobby": "🎯 Hobby",
-            "goal": "🚀 Goal",
-            "pet": "🐶 Pet",
-            "spoken_language": "🗣 Language",
+            "interest": "⭐ Interest",
+            "goal": "🎯 Goal",
+            "occupation": "💼 Occupation",
         }
 
         for key, value in facts.items():
 
-            label = labels.get(key, key)
-
-            lines.append(
-                f"{label}: {value}"
+            label = mapping.get(
+                key,
+                key
             )
 
-        return "\n".join(lines)
+            text += f"{label}: {value}\n"
+
+        return text
 
 
 profile_service = ProfileService()

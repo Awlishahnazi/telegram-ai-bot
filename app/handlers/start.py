@@ -1,30 +1,38 @@
-from aiogram import Router
-from aiogram.filters import CommandStart
+from aiogram import Router, F
 from aiogram.types import Message
+from aiogram.filters import Command
 
 from app.services.ai import ai_service
+from app.keyboards.main_menu import get_main_menu
 
 
 router = Router()
 
 
-@router.message(CommandStart())
-async def start_command(message: Message):
+MENU_BUTTONS = [
+    "💬 Chat with AI",
+    "🧠 My Memory",
+    "👤 My Profile",
+    "⚙️ Settings",
+]
+
+
+@router.message(Command("start"))
+async def start_handler(message: Message):
+
     await message.answer(
-        "سلام 👋\n\n"
-        "من ربات هوش مصنوعی تو هستم.\n"
-        "پیامت را بفرست تا با هم صحبت کنیم 🤖"
+        "🤖 سلام!\n\n"
+        "من Alish AI هستم.\n"
+        "می‌توانم با شما گفتگو کنم و اطلاعات مهم شما را به خاطر بسپارم.",
+        reply_markup=get_main_menu()
     )
 
 
-@router.message()
+@router.message(
+    F.text,
+    ~F.text.in_(MENU_BUTTONS)
+)
 async def chat_handler(message: Message):
-
-    if not message.text:
-        await message.answer(
-            "فعلاً فقط پیام متنی را پردازش می‌کنم 🤖"
-        )
-        return
 
     response = await ai_service.generate_response(
         user_id=message.from_user.id,
