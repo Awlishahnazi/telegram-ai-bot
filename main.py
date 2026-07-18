@@ -1,8 +1,9 @@
 import asyncio
 import logging
-
 from app.bot import create_bot, dp
-from app.handlers.start import router
+from app.handlers.start import router as start_router
+from app.handlers.profile import router as profile_router
+from app.handlers.memory import router as memory_router
 
 
 logging.basicConfig(
@@ -16,7 +17,9 @@ logger = logging.getLogger("telegram-ai-bot")
 async def main():
     bot = await create_bot()
 
-    dp.include_router(router)
+    dp.include_router(profile_router)
+    dp.include_router(start_router)
+    dp.include_router(memory_router)
 
     logger.info("Bot is running...")
 

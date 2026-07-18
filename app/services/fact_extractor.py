@@ -23,26 +23,101 @@ class FactExtractor:
     async def extract(self, message: str):
 
         prompt = f"""
-Extract permanent user facts.
+You are a memory extraction system.
+
+Your task is to extract ONLY long-term facts about the user.
+
+Allowed keys (ONLY use these keys):
+
+- name
+- nickname
+- age
+- birthday
+- gender
+- city
+- country
+- university
+- major
+- degree
+- occupation
+- company
+- favorite_language
+- favorite_framework
+- hobby
+- interest
+- goal
+- pet
+- spoken_language
+
+If a fact does not fit one of these keys, ignore it.
+
+If the message contains no long-term facts, return exactly:
+
+{{"facts": []}}
 
 Return ONLY valid JSON.
+
+Never include explanations.
+Never include markdown.
+Never include code fences.
+Never invent facts.
+
+Extract facts even when the user expresses preferences or interests.
+
+Examples:
+
+User:
+من به یادگیری پایتون علاقه دارم
+
+Output:
+
+{{
+ "facts":[
+   {{
+     "key":"favorite_language",
+     "value":"Python"
+   }}
+ ]
+}}
+
+
+User:
+من به هوش مصنوعی علاقه دارم
+
+Output:
+
+{{
+ "facts":[
+   {{
+     "key":"interest",
+     "value":"Artificial Intelligence"
+   }}
+ ]
+}}
+
 
 Format:
 
 {{
-    "facts":[
+    "facts": [
         {{
-            "key":"...",
-            "value":"..."
+            "key": "...",
+            "value": "..."
         }}
     ]
 }}
 
-If there is no useful fact return
+For values:
 
-{{"facts":[]}}
+- Keep names complete.
+- Keep university names complete.
+- Keep company names complete.
+- Keep city names complete.
+- Do not shorten values.
+- Preserve the user's language whenever possible.
 
 Message:
+
 {message}
 """
 
@@ -61,6 +136,9 @@ Message:
             )
 
             text = response.choices[0].message.content
+
+            print("MODEL OUTPUT:")
+            print(text)
 
             return json.loads(text)
 
