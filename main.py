@@ -5,7 +5,7 @@ from app.handlers.start import router as start_router
 from app.handlers.memory import router as memory_router
 from app.handlers.profile import router as profile_router
 from app.handlers.menu import router as menu_router
-
+from app.handlers.debug import router as debug_router
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s"
@@ -21,6 +21,7 @@ async def main():
     dp.include_router(profile_router)
     dp.include_router(memory_router)
     dp.include_router(start_router)
+    dp.include_router(debug_router)
 
     logger.info("Bot is running...")
 

@@ -30,7 +30,8 @@ async def start_handler(message: Message):
 
 @router.message(
     F.text,
-    ~F.text.in_(MENU_BUTTONS)
+    ~F.text.in_(MENU_BUTTONS),
+    ~F.text.startswith("/")
 )
 async def chat_handler(message: Message):
 
