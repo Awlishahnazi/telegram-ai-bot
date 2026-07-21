@@ -2,6 +2,7 @@ from aiogram import Router
 from aiogram.types import Message
 from app.repositories.user_fact_repository import user_fact_repository
 from app.services.profile import profile_service
+from app.services.memory_formatter import memory_formatter
 
 
 router = Router()
@@ -13,8 +14,10 @@ router = Router()
 @router.message(lambda message: message.text == "🧠 My Memory")
 async def memory_button_handler(message: Message):
 
+    user_id = message.from_user.id
+
     facts = user_fact_repository.get_facts(
-        message.from_user.id
+        user_id
     )
 
     if not facts:
@@ -23,10 +26,11 @@ async def memory_button_handler(message: Message):
         )
         return
 
-    text = "🧠 <b>Your Memory</b>\n\n"
 
-    for key, value in facts.items():
-        text += f"🔹 <b>{key}</b>: {value}\n"
+    text = memory_formatter.format(
+        facts
+    )
+
 
     await message.answer(
         text,

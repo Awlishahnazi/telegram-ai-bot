@@ -3,6 +3,7 @@ from aiogram.filters import Command
 from aiogram.types import Message
 
 from app.repositories.user_fact_repository import user_fact_repository
+from app.services.memory_formatter import memory_formatter
 
 
 router = Router()
@@ -22,13 +23,9 @@ async def show_memory(message: Message):
         return
 
 
-    text = "🧠 <b>Your Memory</b>\n\n"
-
-    for key, value in facts.items():
-
-        text += (
-            f"🔹 <b>{key}</b>: {value}\n"
-        )
+    text = memory_formatter.format(
+        facts
+    )
 
 
     await message.answer(
