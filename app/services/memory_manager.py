@@ -1,6 +1,8 @@
 from app.repositories.user_fact_repository import user_fact_repository
 from app.services.fact_extractor import fact_extractor
 from app.services.memory_ranker import memory_ranker
+from app.services.memory_cleaner import memory_cleaner
+from app.services.memory_search import memory_search
 
 
 class MemoryManager:
@@ -15,7 +17,19 @@ class MemoryManager:
 
         facts = result.get("facts", [])
 
+        if not facts:
+            return
+
+        existing = user_fact_repository.get_facts(user_id)
+
         for fact in facts:
+
+            if not memory_cleaner.should_store(
+                fact["key"],
+                fact["value"],
+                existing,
+            ):
+                continue
 
             user_fact_repository.save_fact(
                 user_id=user_id,
@@ -23,9 +37,14 @@ class MemoryManager:
                 value=fact["value"],
             )
 
+            # بروزرسانی حافظه محلی تا اگر چند Fact
+            # در یک پیام وجود داشت، مقدار جدید هم دیده شود.
+            existing[fact["key"]] = fact["value"]
+
     def get_user_context(
         self,
         user_id: int,
+        message: str,
     ):
 
         facts = user_fact_repository.get_facts(user_id)
@@ -33,11 +52,19 @@ class MemoryManager:
         if not facts:
             return ""
 
-        ranked_facts = memory_ranker.rank(facts)
+        relevant = memory_search.search(
+            message,
+            facts,
+        )
+
+        if relevant:
+            ranked = memory_ranker.rank(relevant)
+        else:
+            ranked = memory_ranker.rank(facts)
 
         return "\n".join(
             f"{key}: {value}"
-            for key, value in ranked_facts.items()
+            for key, value in ranked.items()
         )
 
     def debug_context(

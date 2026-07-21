@@ -40,4 +40,7 @@ async def chat_handler(message: Message):
         message=message.text
     )
 
-    await message.answer(response)
+    await message.answer(
+        response,
+        reply_markup=get_main_menu()
+    )

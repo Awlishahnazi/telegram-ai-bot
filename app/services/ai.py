@@ -68,7 +68,8 @@ class AIService:
 
             # Get long-term memory context
             user_context = memory_manager.get_user_context(
-                user_id
+            user_id=user_id,
+            message=message,
             )
 
 
