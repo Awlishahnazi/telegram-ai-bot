@@ -24,28 +24,35 @@ class MemoryManager:
 
         for fact in facts:
 
+            key = fact["key"]
+            value = fact["value"]
+
             if not memory_cleaner.should_store(
-                fact["key"],
-                fact["value"],
+                key,
+                value,
                 existing,
             ):
                 continue
 
             user_fact_repository.save_fact(
                 user_id=user_id,
-                key=fact["key"],
-                value=fact["value"],
+                key=key,
+                value=value,
             )
 
-            # بروزرسانی حافظه محلی تا اگر چند Fact
-            # در یک پیام وجود داشت، مقدار جدید هم دیده شود.
-            existing[fact["key"]] = fact["value"]
+            # Update local memory state
+            # to handle multiple facts in one message
+            existing[key] = value
 
-    def get_user_context(
+
+    def search_memory(
         self,
         user_id: int,
         message: str,
     ):
+        """
+        Retrieve relevant memories based on user query.
+        """
 
         facts = user_fact_repository.get_facts(user_id)
 
@@ -57,15 +64,33 @@ class MemoryManager:
             facts,
         )
 
-        if relevant:
-            ranked = memory_ranker.rank(relevant)
-        else:
-            ranked = memory_ranker.rank(facts)
+        if not relevant:
+            return ""
+
+        ranked = memory_ranker.rank(relevant)
 
         return "\n".join(
             f"{key}: {value}"
             for key, value in ranked.items()
         )
+
+
+    def get_user_context(
+        self,
+        user_id: int,
+        message: str,
+    ):
+        """
+        Generate context for AI prompt.
+        """
+
+        context = self.search_memory(
+            user_id,
+            message,
+        )
+
+        return context
+
 
     def debug_context(
         self,

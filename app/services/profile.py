@@ -23,6 +23,7 @@ class ProfileService:
             "interest": "⭐ Interest",
             "goal": "🎯 Goal",
             "occupation": "💼 Occupation",
+            "city": "🏙 City",
         }
 
         for key, value in facts.items():
