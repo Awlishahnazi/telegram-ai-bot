@@ -3,6 +3,8 @@ from app.services.fact_extractor import fact_extractor
 from app.services.memory_ranker import memory_ranker
 from app.services.memory_cleaner import memory_cleaner
 from app.services.memory_search import memory_search
+from app.services.memory_intent import memory_intent
+from app.services.memory_delete import memory_delete
 
 
 class MemoryManager:
@@ -13,19 +15,48 @@ class MemoryManager:
         message: str,
     ):
 
+        intent = memory_intent.detect(message)
+
+        print(f"MEMORY INTENT: {intent}")
+
+
+        # Handle delete requests
+        if intent == "delete":
+
+            deleted = memory_delete.delete(
+                user_id=user_id,
+                message=message,
+            )
+
+            return {
+                "action": "delete",
+                "success": bool(deleted),
+                "deleted": deleted,
+            }
+
+
+        # Handle store/update requests
+
         result = await fact_extractor.extract(message)
 
         facts = result.get("facts", [])
 
+
         if not facts:
-            return
+            return {
+                "action": "none",
+                "success": False,
+            }
+
 
         existing = user_fact_repository.get_facts(user_id)
+
 
         for fact in facts:
 
             key = fact["key"]
             value = fact["value"]
+
 
             if not memory_cleaner.should_store(
                 key,
@@ -34,15 +65,23 @@ class MemoryManager:
             ):
                 continue
 
+
             user_fact_repository.save_fact(
                 user_id=user_id,
                 key=key,
                 value=value,
             )
 
-            # Update local memory state
-            # to handle multiple facts in one message
+
+            # update local memory
             existing[key] = value
+
+
+        return {
+            "action": intent,
+            "success": True,
+        }
+
 
 
     def search_memory(
@@ -56,23 +95,29 @@ class MemoryManager:
 
         facts = user_fact_repository.get_facts(user_id)
 
+
         if not facts:
             return ""
+
 
         relevant = memory_search.search(
             message,
             facts,
         )
 
+
         if not relevant:
             return ""
 
+
         ranked = memory_ranker.rank(relevant)
+
 
         return "\n".join(
             f"{key}: {value}"
             for key, value in ranked.items()
         )
+
 
 
     def get_user_context(
@@ -84,12 +129,11 @@ class MemoryManager:
         Generate context for AI prompt.
         """
 
-        context = self.search_memory(
+        return self.search_memory(
             user_id,
             message,
         )
 
-        return context
 
 
     def debug_context(
@@ -99,12 +143,16 @@ class MemoryManager:
 
         facts = user_fact_repository.get_facts(user_id)
 
+
         if not facts:
             return "No memory."
 
+
         ranked = memory_ranker.rank(facts)
 
+
         text = "🧠 Memory Context\n\n"
+
 
         for key, value in ranked.items():
 
@@ -116,7 +164,9 @@ class MemoryManager:
                 f"{value}\n"
             )
 
+
         return text
+
 
 
 memory_manager = MemoryManager()

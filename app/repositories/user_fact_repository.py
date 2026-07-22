@@ -52,7 +52,6 @@ class UserFactRepository:
 
             fact = session.execute(stmt).scalar_one_or_none()
 
-
             if fact:
 
                 # برای اطلاعات چند مقداری
@@ -68,11 +67,9 @@ class UserFactRepository:
 
                         fact.value = ", ".join(existing_values)
 
-
                 # برای اطلاعات تک مقداری
                 else:
                     fact.value = value
-
 
             else:
 
@@ -84,9 +81,7 @@ class UserFactRepository:
 
                 session.add(fact)
 
-
             session.commit()
-
 
     def get_facts(
         self,
@@ -104,12 +99,57 @@ class UserFactRepository:
 
             facts = session.execute(stmt).scalars().all()
 
-
             return {
                 fact.key: fact.value
                 for fact in facts
             }
 
+    def delete_fact(
+        self,
+        user_id: int,
+        key: str,
+    ):
+
+        with SessionLocal() as session:
+
+            stmt = (
+                select(UserFact)
+                .where(
+                    UserFact.user_id == user_id,
+                    UserFact.key == key,
+                )
+            )
+
+            fact = session.execute(stmt).scalar_one_or_none()
+
+            if fact is None:
+                return False
+
+            session.delete(fact)
+            session.commit()
+
+            return True
+
+    def clear_all(
+        self,
+        user_id: int,
+    ):
+
+        with SessionLocal() as session:
+
+            stmt = (
+                select(UserFact)
+                .where(
+                    UserFact.user_id == user_id,
+                )
+            )
+
+            facts = session.execute(stmt).scalars().all()
+
+            for fact in facts:
+                session.delete(fact)
+
+            session.commit()
 
     def get_context(
         self,
@@ -118,10 +158,8 @@ class UserFactRepository:
 
         facts = self.get_facts(user_id)
 
-
         if not facts:
             return ""
-
 
         return "\n".join(
             [
